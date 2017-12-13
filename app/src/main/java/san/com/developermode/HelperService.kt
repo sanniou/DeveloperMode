@@ -13,6 +13,7 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.*
 import com.zrhx.base.multitype.binder.BaseViewBinder
 import com.zrhx.base.utils.ScreenUtils
@@ -20,6 +21,7 @@ import com.zrhx.base.utils.ToastUtils
 import com.zrhx.base.widget.recyclerview.LViewHolder
 import me.drakeet.multitype.Items
 import me.drakeet.multitype.MultiTypeAdapter
+import san.com.developermode.utils.requestCapturePermission
 
 
 class HelperService : Service() {
@@ -85,9 +87,9 @@ class HelperService : Service() {
         // 取一个PendingIntent
         val pIntentPlay = PendingIntent.getBroadcast(applicationContext, requestCode, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT)
         notification = Notification.Builder(applicationContext)
-                .addAction(R.drawable.ic_launcher_foreground, "关闭", pIntentPlay) // #0
+                .addAction(R.mipmap.ic_launcher, "关闭", pIntentPlay) // #0
                 .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher))
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText("Helper Notify")
                 .setContentTitle("title")
                 .setNumber(88)
@@ -125,38 +127,69 @@ class HelperService : Service() {
 
         // display content
         items = Items()
-        items.add("Helper")
-        items.add("Helper")
-        items.add("Helper")
-        items.add("Helper")
+        items.add(Item("Helper", 0))
+        items.add(Item("Activity", 1))
+        items.add(Item("window", 2))
+        items.add(Item("Screen", 3))
         adapter = MultiTypeAdapter(items)
         adapter.register(Item::class.java, object : BaseViewBinder<Item>(R.layout.item_helper_main) {
             override fun onInitViewHolder(p0: LViewHolder) {
-                p0.itemView.setOnTouchListener { _, event ->
-                    p0.itemView.parent.requestDisallowInterceptTouchEvent(true)
-                    when (event.action) {
-                        MotionEvent.ACTION_DOWN -> {
-                            startX = event.rawX.toInt()
-                            startY = event.rawY.toInt()
-                            p0.itemView.setBackgroundResource(R.color.config_orange)
-                        }
-                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                            p0.itemView.setBackgroundResource(R.color.config_blue)
-                            if (swipeX > 0 || swipeY > 0) {
-                                release()
+                p0.itemView.run {
+                    setOnTouchListener { v, event ->
+                        p0.itemView.parent.requestDisallowInterceptTouchEvent(true)
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                startX = event.rawX.toInt()
+                                startY = event.rawY.toInt()
+                                p0.itemView.setBackgroundResource(R.color.config_orange)
+                            }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                                p0.itemView.setBackgroundResource(R.color.config_blue)
+                                if (swipeX > 0) {
+                                    release()
+                                } else {
+                                    v.performClick()
+                                }
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                val thisX = event.rawX.toInt()
+                                val thisY = event.rawY.toInt()
+                                swipeX += thisX - startX
+                                swipeY += thisY - startY
+                                startX = thisX
+                                startY = thisY
+                                updateView()
                             }
                         }
-                        MotionEvent.ACTION_MOVE -> {
-                            val thisX = event.rawX.toInt()
-                            val thisY = event.rawY.toInt()
-                            swipeX += thisX - startX
-                            swipeY += thisY - startY
-                            startX = thisX
-                            startY = thisY
-                            updateView()
+                        true
+                    }
+                    setOnClickListener { v ->
+                        val holder = LViewHolder.getTagHolder(v)
+                        val item: Item = holder.getObj(ITEM)
+                        when (item.code) {
+                            0 -> {
+                            }
+                            1 -> {
+                                sAccessibilityService?.run {
+                                    val info = rootInActiveWindow
+                                    Log.e("dssds", info.toString())
+                                    for (i in 0 until info.childCount - 1) {
+                                        info.windowId
+                                        Log.e("dssds2", info.getChild(i).toString())
+                                    }
+                                }
+                            }
+                            2 -> {
+                                showWindow = !showWindow
+                                sAccessibilityService?.updateWindow()
+                            }
+                            3 -> {
+                                requestCapturePermission(this@HelperService)
+                            }
+                            else -> {
+                            }
                         }
                     }
-                    true
                 }
             }
 
@@ -186,5 +219,6 @@ class HelperService : Service() {
                     start()
                 }
     }
+
 
 }

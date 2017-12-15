@@ -60,18 +60,12 @@ class ActivityAccessibilityService : AccessibilityService() {
         val h = ScreenUtils.getScreenHeight() / 3
 
         val flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            //解决Android 7.1.1起不能再用Toast的问题（先解决crash）
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-                WindowManager.LayoutParams.TYPE_PHONE
-            } else {
-                WindowManager.LayoutParams.TYPE_TOAST
-            }
-        } else {
-            WindowManager.LayoutParams.TYPE_PHONE
-        }
-
-
+        val type =//解决Android 7.1.1起不能再用Toast的问题
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+                    WindowManager.LayoutParams.TYPE_PHONE
+                } else {
+                    WindowManager.LayoutParams.TYPE_TOAST
+                }
         layoutParams = WindowManager.LayoutParams(w, h, type, flags, PixelFormat.TRANSLUCENT)
         layoutParams.gravity = Gravity.TOP or Gravity.START
     }

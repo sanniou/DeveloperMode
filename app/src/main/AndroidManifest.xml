@@ -21,17 +21,18 @@
         </activity>
 
         <service android:name=".HelperService"/>
-
         <service
             android:name=".ActivityAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
             </intent-filter>
+
             <meta-data
                 android:name="android.accessibilityservice"
-                android:resource="@xml/service_config" />
+                android:resource="@xml/service_config"/>
         </service>
+
     </application>
 
 </manifest>

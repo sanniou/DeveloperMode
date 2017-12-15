@@ -21,7 +21,7 @@ import com.zrhx.base.utils.ToastUtils
 import com.zrhx.base.widget.recyclerview.LViewHolder
 import me.drakeet.multitype.Items
 import me.drakeet.multitype.MultiTypeAdapter
-import san.com.developermode.utils.requestCapturePermission
+import san.com.developermode.utils.Capture
 
 
 class HelperService : Service() {
@@ -53,6 +53,8 @@ class HelperService : Service() {
 
     override fun onBind(intent: Intent?) = null
 
+    private lateinit var capture: Capture
+
     override fun onCreate() {
         super.onCreate()
         touchSlop = ViewConfiguration.get(this).scaledTouchSlop
@@ -60,6 +62,7 @@ class HelperService : Service() {
         swipeY = ScreenUtils.getScreenHeight() / 2
         bindForeground()
         show()
+        capture = Capture()
     }
 
     override fun onDestroy() {
@@ -107,15 +110,10 @@ class HelperService : Service() {
         val h = WindowManager.LayoutParams.WRAP_CONTENT
 
         val flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            //解决Android 7.1.1起不能再用Toast的问题（先解决crash）
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-                WindowManager.LayoutParams.TYPE_PHONE
-            } else {
-                WindowManager.LayoutParams.TYPE_TOAST
-            }
-        } else {
+        val type = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
             WindowManager.LayoutParams.TYPE_PHONE
+        } else {
+            WindowManager.LayoutParams.TYPE_TOAST
         }
 
 
@@ -184,7 +182,7 @@ class HelperService : Service() {
                                 sAccessibilityService?.updateWindow()
                             }
                             3 -> {
-                                requestCapturePermission(this@HelperService)
+                                capture.setUpMediaProjection()
                             }
                             else -> {
                             }
